@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>공부 기록</title></head>
+<body>
+  <h1>📖 공부 기록하기</h1>
+  <select id="subject">
+    <option value="물리">물리</option>
+    <option value="수학">수학</option>
+    <option value="코딩">코딩</option>
+  </select>
+  <select id="time">
+    <option value="30">30분</option>
+    <option value="60">1시간</option>
+  </select>
+  <button onclick="save()">저장</button>
+
+  <script>
+    async function save() {
+      const subject = document.getElementById('subject').value;
+      const time = document.getElementById('time').value;
+      await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, time })
+      });
+      alert('저장되었습니다!');
+    }
+  </script>
+</body>
+</html>
