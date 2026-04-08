@@ -2,22 +2,23 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>공부 시간 기록기</title>
+    <title>공부 시간 기록 및 통계</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f4f7f6; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; margin-bottom: 20px; }
         h2 { text-align: center; color: #333; }
         label { display: block; margin-top: 15px; font-size: 14px; color: #666; }
         select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #ddd; }
-        button { background-color: #4CAF50; color: white; border: none; margin-top: 20px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #45a049; }
+        button { background-color: #4CAF50; color: white; border: none; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .btn-graph { background-color: #2196F3; }
+        canvas { max-width: 400px; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>📚 공부 기록</h2>
-        
-        <label for="subject">과목 선택</label>
+        <h2>📚 공부 기록기</h2>
+        <label>과목 선택</label>
         <select id="subject">
             <option value="물리">물리</option>
             <option value="수학">수학</option>
@@ -25,39 +26,58 @@
             <option value="코딩">코딩</option>
         </select>
 
-        <label for="duration">공부 시간</label>
+        <label>공부 시간</label>
         <select id="duration">
             <option value="30">30분</option>
             <option value="60">1시간</option>
-            <option value="90">1시간 30분</option>
             <option value="120">2시간</option>
         </select>
 
-        <button onclick="sendData()">기록하기</button>
+        <button onclick="sendData()">기록 저장하기</button>
+        <button class="btn-graph" onclick="loadChart()">통계 그래프 보기</button>
     </div>
 
+    <canvas id="myChart"></canvas>
+
     <script>
+        // 저장 기능
         async function sendData() {
             const subject = document.getElementById('subject').value;
             const duration = document.getElementById('duration').value;
+            const res = await fetch('/api/save-study', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject, duration })
+            });
+            if (res.ok) alert('저장되었습니다!');
+        }
 
-            try {
-                const response = await fetch('/api/save-study', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject, duration })
-                });
+        // 그래프 기능
+        let myChart;
+        async function loadChart() {
+            const res = await fetch('/api/get-stats');
+            const data = await res.json();
 
-                const result = await response.json();
-                if (result.success) {
-                    alert(`${subject} ${duration}분 기록 완료!`);
-                } else {
-                    alert('저장에 실패했습니다.');
+            const subjects = data.map(item => item.subject_name);
+            const times = data.map(item => item.total_time);
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (myChart) { myChart.destroy(); } // 기존 그래프 삭제
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: subjects,
+                    datasets: [{
+                        label: '총 공부 시간 (분)',
+                        data: times,
+                        backgroundColor: '#4CAF50'
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } }
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('서버 연결 오류');
-            }
+            });
         }
     </script>
 </body>
