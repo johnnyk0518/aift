@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>공부 시간 기록기</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; }
+        h2 { text-align: center; color: #333; }
+        label { display: block; margin-top: 15px; font-size: 14px; color: #666; }
+        select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #ddd; }
+        button { background-color: #4CAF50; color: white; border: none; margin-top: 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📚 공부 기록</h2>
+        
+        <label for="subject">과목 선택</label>
+        <select id="subject">
+            <option value="물리">물리</option>
+            <option value="수학">수학</option>
+            <option value="영어">영어</option>
+            <option value="코딩">코딩</option>
+        </select>
+
+        <label for="duration">공부 시간</label>
+        <select id="duration">
+            <option value="30">30분</option>
+            <option value="60">1시간</option>
+            <option value="90">1시간 30분</option>
+            <option value="120">2시간</option>
+        </select>
+
+        <button onclick="sendData()">기록하기</button>
+    </div>
+
+    <script>
+        async function sendData() {
+            const subject = document.getElementById('subject').value;
+            const duration = document.getElementById('duration').value;
+
+            try {
+                const response = await fetch('/api/save-study', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, duration })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(`${subject} ${duration}분 기록 완료!`);
+                } else {
+                    alert('저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('서버 연결 오류');
+            }
+        }
+    </script>
+</body>
+</html>
